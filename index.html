@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuProfe20 Lab - Sucesiones y Analogías</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & React DOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+        
+        body { margin: 0; padding: 0; overflow: hidden; width: 100vw; height: 100dvh; user-select: none; }
+        .font-fun { font-family: 'Nunito', sans-serif; }
+        
+        @keyframes floatUp { 
+            0% { transform: translateY(105vh) rotate(0deg); } 
+            100% { transform: translateY(-105vh) rotate(360deg); } 
+        }
+        @keyframes slideInRight { 
+            0% { opacity: 0; transform: translateX(20px); } 
+            100% { opacity: 1; transform: translateX(0); } 
+        }
+        @keyframes confettiExplosion { 
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; } 
+            80% { opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(var(--rot)); opacity: 0; } 
+        }
+        @keyframes jellyPop {
+            0% { transform: scale3d(.3, .3, .3); opacity: 0; }
+            20% { transform: scale3d(1.15, 1.15, 1.15); }
+            40% { transform: scale3d(.92, .92, .92); }
+            60% { transform: scale3d(1.05, 1.05, 1.05); opacity: 1; }
+            80% { transform: scale3d(.97, .97, .97); }
+            100% { transform: scale3d(1, 1, 1); opacity: 1; }
+        }
+        @keyframes robotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+        @keyframes robotThinkTilt { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(7deg) translateY(-4px); } }
+        @keyframes robotJump { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-16px); } }
+        @keyframes robotTalkArmL { 0%, 100% { transform: rotate(45deg); } 50% { transform: rotate(95deg); } }
+        @keyframes robotTalkArmR { 0%, 100% { transform: rotate(-45deg); } 50% { transform: rotate(-95deg); } }
+        @keyframes pulseGlow { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .animate-floatUp { animation: floatUp linear infinite; }
+        .animate-slideInRight { animation: slideInRight 0.35s ease-out forwards; }
+        .animate-confettiExplosion { animation: confettiExplosion 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        .animate-jellyPop { animation: jellyPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-robotFloat { animation: robotFloat 3s ease-in-out infinite; }
+        .animate-robotThinkTilt { animation: robotThinkTilt 2s ease-in-out infinite; }
+        .animate-robotJump { animation: robotJump 1s cubic-bezier(0.28, 0.84, 0.42, 1) infinite; }
+        .animate-robotTalkArmL { animation: robotTalkArmL 0.6s ease-in-out infinite; }
+        .animate-robotTalkArmR { animation: robotTalkArmR 0.6s ease-in-out infinite 0.1s; }
+        .animate-pulseGlow { animation: pulseGlow 2s ease-in-out infinite; }
+
+        .katex { font-weight: 900 !important; }
+        .katex-display { margin: 0 !important; padding: 0 !important; }
+        
+        .math-card .katex { font-size: clamp(0.85rem, 1.6vw, 1.15rem) !important; color: #1e293b !important; }
+        .math-enunciado .katex { font-size: clamp(0.95rem, 2vw, 1.45rem) !important; color: #ffffff !important; }
+        .math-current .katex { font-size: clamp(1.1rem, 2.6vw, 2.1rem) !important; color: #0f172a !important; }
+        .math-history .katex { font-size: clamp(0.9rem, 2vw, 1.5rem) !important; color: #475569 !important; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, memo } = React;
+
+        // Icon Utility
+        const Icon = ({ paths, className = "", size = 24, fill = "none", strokeWidth = "2.5" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{__html: paths}} />
+        );
+
+        const VolumeX = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>' />;
+        const Volume2 = (p) => <Icon {...p} paths='<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>' />;
+        const Rocket = (p) => <Icon {...p} paths='<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>' />;
+        const Sparkles = (p) => <Icon {...p} paths='<path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M3 5h4"/><path d="M19 3v4"/><path d="M17 5h4"/>' />;
+        const Home = (p) => <Icon {...p} paths='<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' />;
+        const ChevronLeft = (p) => <Icon {...p} paths='<polyline points="15 18 9 12 15 6"/>' />;
+        const ChevronRight = (p) => <Icon {...p} paths='<polyline points="9 18 15 12 9 6"/>' />;
+        const CheckCircle = (p) => <Icon {...p} paths='<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' />;
+
+        // Web Audio Synthesizer Controller
+        const AudioController = {
+            ctx: null, muted: false,
+            init: function() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) this.ctx = new AudioContext();
+            },
+            play: function(type) {
+                if (this.muted || !this.ctx) return;
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                
+                if (type === 'pop') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(520, now); osc.frequency.exponentialRampToValueAtTime(850, now + 0.1);
+                    gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'pop-reverse') {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(680, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
+                    gain.gain.setValueAtTime(0.18, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
+                } else if (type === 'success') {
+                    osc.disconnect();
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                        o.type = 'triangle'; o.frequency.value = freq;
+                        o.connect(g); g.connect(this.ctx.destination);
+                        const startTime = now + (i * 0.07);
+                        g.gain.setValueAtTime(0, startTime); g.gain.linearRampToValueAtTime(0.22, startTime + 0.04); g.gain.linearRampToValueAtTime(0, startTime + 0.35);
+                        o.start(startTime); o.stop(startTime + 0.35);
+                    });
+                } else if (type === 'swoosh') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
+                    gain.gain.setValueAtTime(0.18, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                    osc.start(now); osc.stop(now + 0.18);
+                }
+            },
+            toggleMute: function() { this.muted = !this.muted; return this.muted; }
+        };
+
+        // KaTeX Math Display Component
+        const MathDisplay = memo(({ latex, className = "", inline = false }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    try {
+                        window.katex.render(latex, containerRef.current, {
+                            displayMode: !inline, throwOnError: false, strict: false, trust: true
+                        });
+                    } catch (e) {
+                        containerRef.current.innerText = latex;
+                    }
+                }
+            }, [latex, inline]);
+
+            return inline ? (
+                <span ref={containerRef} className={`inline-block align-middle ${className}`} />
+            ) : (
+                <div className={`relative w-full flex justify-center ${className}`}>
+                    <div ref={containerRef} className="w-full text-center" />
+                </div>
+            );
+        });
+
+        // --- COMPONENTES GRÁFICOS SVG INTERACTIVOS ---
+
+        // Diagrama 41: Círculos Cuadrantes
+        const CirclesQuadrantsSVG = ({ step }) => {
+            const figs = [
+                { tl: 6, tr: 3, bl: 8, br: 4, label: "Figura 1" },
+                { tl: 9, tr: 6, bl: 12, br: 8, label: "Figura 2" },
+                { tl: 12, tr: step >= 3 ? "16" : "x", bl: 6, br: 8, label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="120" height="120" viewBox="0 0 120 120" className="drop-shadow-md">
+                                    <circle cx="60" cy="60" r="54" fill="#ffffff" stroke={isActive ? '#3b82f6' : '#475569'} strokeWidth="4" />
+                                    {/* Quadrant background colors */}
+                                    <path d="M 60 60 L 60 6 A 54 54 0 0 1 114 60 Z" fill={f.isTarget ? "#e0f2fe" : "#f1f5f9"} />
+                                    <line x1="6" y1="60" x2="114" y2="60" stroke="#475569" strokeWidth="3" />
+                                    <line x1="60" y1="6" x2="60" y2="114" stroke="#475569" strokeWidth="3" />
+                                    <circle cx="60" cy="60" r="8" fill="#334155" />
+                                    
+                                    {/* Diagonal Highlight Lines if active */}
+                                    {isActive && (
+                                        <>
+                                            <line x1="30" y1="30" x2="90" y2="90" stroke="#3b82f6" strokeWidth="3" strokeDasharray="4 2" />
+                                            <line x1="90" y1="30" x2="30" y2="90" stroke="#e11d48" strokeWidth="3" strokeDasharray="4 2" />
+                                        </>
+                                    )}
+
+                                    <text x="35" y="42" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="bold">{f.tl}</text>
+                                    <text x="85" y="42" textAnchor="middle" fill={f.isTarget && step < 3 ? "#e11d48" : "#0f172a"} fontSize="20" fontWeight="900">{f.tr}</text>
+                                    <text x="35" y="92" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="bold">{f.bl}</text>
+                                    <text x="85" y="92" textAnchor="middle" fill="#0f172a" fontSize="18" fontWeight="bold">{f.br}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 43: Rectángulos sobre base dividida
+        const RectanglesSVG = ({ step }) => {
+            const figs = [
+                { top: 3, left: 1, right: 18, label: "Figura 1" },
+                { top: 6, left: 3, right: 12, label: "Figura 2" },
+                { top: step >= 3 ? "5" : "x", left: 5, right: 6, label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="110" height="120" viewBox="0 0 110 120" className="drop-shadow-md">
+                                    <rect x="5" y="5" width="100" height="110" rx="8" fill="#ffffff" stroke={isActive ? '#8b5cf6' : '#475569'} strokeWidth="4" />
+                                    {/* Top banner */}
+                                    <rect x="5" y="5" width="100" height="35" rx="6" fill={f.isTarget ? "#ede9fe" : "#f1f5f9"} stroke="#475569" strokeWidth="2" />
+                                    <line x1="5" y1="40" x2="105" y2="40" stroke="#475569" strokeWidth="3" />
+                                    <line x1="55" y1="40" x2="55" y2="115" stroke="#475569" strokeWidth="3" />
+                                    
+                                    <text x="55" y="30" textAnchor="middle" fill={f.isTarget && step < 3 ? "#d97706" : "#6b21a8"} fontSize="22" fontWeight="900">{f.top}</text>
+                                    <text x="30" y="85" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="bold">{f.left}</text>
+                                    <text x="80" y="85" textAnchor="middle" fill="#0f172a" fontSize="20" fontWeight="bold">{f.right}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-purple-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 45: Triángulos divididos con triángulo central invertido
+        const TrianglesSVG = ({ step }) => {
+            const figs = [
+                { top: 6, left: 1, right: 11, center: 6, label: "Figura 1" },
+                { top: 8, left: 3, right: 13, center: 8, label: "Figura 2" },
+                { top: 12, left: 7, right: 17, center: step >= 3 ? "12" : "x", label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="120" height="110" viewBox="0 0 120 110" className="drop-shadow-md">
+                                    {/* Main Triangle */}
+                                    <polygon points="60,5 5,105 115,105" fill="#ffffff" stroke={isActive ? '#f43f5e' : '#475569'} strokeWidth="4" strokeLinejoin="round" />
+                                    {/* Inverted Inner Triangle */}
+                                    <polygon points="60,105 32,55 88,55" fill={f.isTarget ? "#ffe4e6" : "#e2e8f0"} stroke="#475569" strokeWidth="2.5" />
+                                    
+                                    <text x="60" y="42" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.top}</text>
+                                    <text x="30" y="95" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.left}</text>
+                                    <text x="90" y="95" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.right}</text>
+                                    <text x="60" y="80" textAnchor="middle" fill={f.isTarget && step < 3 ? "#be123c" : "#0f172a"} fontSize="18" fontWeight="900">{f.center}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 46: Dianas con orejas
+        const TargetEarsSVG = ({ step }) => {
+            const figs = [
+                { left: 6, right: 12, center: 9, label: "Figura 1" },
+                { left: 4, right: 18, center: 11, label: "Figura 2" },
+                { left: 5, right: 15, center: step >= 3 ? "10" : "x", label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="120" height="120" viewBox="0 0 120 120" className="drop-shadow-md">
+                                    {/* Ear circles */}
+                                    <circle cx="28" cy="28" r="18" fill="#ffffff" stroke="#475569" strokeWidth="3" />
+                                    <circle cx="92" cy="28" r="18" fill="#ffffff" stroke="#475569" strokeWidth="3" />
+                                    {/* Main Target Concentric Circles */}
+                                    <circle cx="60" cy="72" r="42" fill="#ffffff" stroke={isActive ? '#10b981' : '#475569'} strokeWidth="3" />
+                                    <circle cx="60" cy="72" r="30" fill="none" stroke="#94a3b8" strokeWidth="2" />
+                                    <circle cx="60" cy="72" r="18" fill={f.isTarget ? "#d1fae5" : "#f1f5f9"} stroke="#475569" strokeWidth="2" />
+
+                                    <text x="28" y="34" textAnchor="middle" fill="#0f172a" fontSize="15" fontWeight="bold">{f.left}</text>
+                                    <text x="92" y="34" textAnchor="middle" fill="#0f172a" fontSize="15" fontWeight="bold">{f.right}</text>
+                                    <text x="60" y="78" textAnchor="middle" fill={f.isTarget && step < 3 ? "#047857" : "#0f172a"} fontSize="18" fontWeight="900">{f.center}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 47: Cadena de Cajas Secuenciales
+        const SequenceBoxesSVG = ({ step }) => {
+            const items = [736, 368, 184, 92, 46, step >= 3 ? "23" : "x"];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 my-2 overflow-x-auto p-2">
+                    {items.map((val, i) => (
+                        <div key={i} className="flex items-center">
+                            <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-sm sm:text-lg shadow-md border-3 transition-all ${i === items.length - 1 ? (step >= 3 ? 'bg-emerald-400 text-slate-900 border-emerald-600 scale-110' : 'bg-amber-300 text-slate-900 border-amber-500') : 'bg-white text-slate-800 border-slate-300'}`}>
+                                {val}
+                            </div>
+                            {i < items.length - 1 && (
+                                <div className="mx-1 text-slate-400 font-bold text-xs sm:text-sm flex flex-col items-center">
+                                    <span>÷2</span>
+                                    <span>➔</span>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Diagrama 48: Pirámides de 3 Pisos
+        const PyramidsSVG = ({ step }) => {
+            const figs = [
+                { top: 1, mid: 4, bot: 3, label: "Figura 1" },
+                { top: 2, mid: 9, bot: 5, label: "Figura 2" },
+                { top: 3, mid: step >= 3 ? "16" : "x", bot: 7, label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="110" height="110" viewBox="0 0 110 110" className="drop-shadow-md">
+                                    {/* Pyramid main border */}
+                                    <polygon points="55,5 5,105 105,105" fill="#ffffff" stroke={isActive ? '#0284c7' : '#475569'} strokeWidth="4" strokeLinejoin="round" />
+                                    {/* Horizontal layers lines */}
+                                    <line x1="22" y1="38" x2="88" y2="38" stroke="#475569" strokeWidth="3" />
+                                    <line x1="13" y1="71" x2="97" y2="71" stroke="#475569" strokeWidth="3" />
+                                    
+                                    {/* Highlight Mid Layer if target */}
+                                    {f.isTarget && <polygon points="22,38 88,38 97,71 13,71" fill="#e0f2fe" opacity="0.8" />}
+
+                                    <text x="55" y="28" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.top}</text>
+                                    <text x="55" y="60" textAnchor="middle" fill={f.isTarget && step < 3 ? "#0284c7" : "#0f172a"} fontSize="19" fontWeight="900">{f.mid}</text>
+                                    <text x="55" y="94" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.bot}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 49: Marco Trapezoidal / Rectangular con triángulo invertido
+        const TrapezoidFramesSVG = ({ step }) => {
+            const figs = [
+                { top: 11, left: 6, right: 15, center: 16, label: "Figura 1" },
+                { top: 13, left: 7, right: 18, center: 19, label: "Figura 2" },
+                { top: 15, left: 8, right: 21, center: step >= 3 ? "22" : "X", label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="120" height="100" viewBox="0 0 120 100" className="drop-shadow-md">
+                                    <rect x="5" y="5" width="110" height="90" fill="#ffffff" stroke={isActive ? '#d97706' : '#475569'} strokeWidth="4" />
+                                    {/* Central Inverted Triangle */}
+                                    <polygon points="60,95 20,25 100,25" fill={f.isTarget ? "#fef3c7" : "#f1f5f9"} stroke="#475569" strokeWidth="2.5" />
+                                    
+                                    <text x="60" y="20" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.top}</text>
+                                    <text x="22" y="70" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.left}</text>
+                                    <text x="98" y="70" textAnchor="middle" fill="#0f172a" fontSize="16" fontWeight="bold">{f.right}</text>
+                                    <text x="60" y="55" textAnchor="middle" fill={f.isTarget && step < 3 ? "#b45309" : "#0f172a"} fontSize="19" fontWeight="900">{f.center}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // Diagrama 50: Círculos divididos en 3 franjas horizontales
+        const StripedCirclesSVG = ({ step }) => {
+            const figs = [
+                { top: 4, mid: 7, bot: 3, label: "Figura 1" },
+                { top: 5, mid: 9, bot: 4, label: "Figura 2" },
+                { top: 6, mid: step >= 3 ? "11" : "x", bot: 5, label: "Figura 3", isTarget: true }
+            ];
+            return (
+                <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-8 my-2">
+                    {figs.map((f, idx) => {
+                        const isActive = (step === 1 && idx === 0) || (step === 2 && idx === 1) || (step === 3 && idx === 2);
+                        return (
+                            <div key={idx} className={`flex flex-col items-center transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}>
+                                <svg width="110" height="110" viewBox="0 0 110 110" className="drop-shadow-md">
+                                    <circle cx="55" cy="55" r="48" fill="#ffffff" stroke={isActive ? '#14b8a6' : '#475569'} strokeWidth="4" />
+                                    {/* Horizontal bands */}
+                                    <line x1="12" y1="36" x2="98" y2="36" stroke="#475569" strokeWidth="3" />
+                                    <line x1="12" y1="74" x2="98" y2="74" stroke="#475569" strokeWidth="3" />
+                                    
+                                    <rect x="12" y="36" width="86" height="38" fill={f.isTarget ? "#ccfbf1" : "#f1f5f9"} opacity="0.8" />
+
+                                    <text x="55" y="27" textAnchor="middle" fill="#0f172a" fontSize="17" fontWeight="bold">{f.top}</text>
+                                    <text x="55" y="62" textAnchor="middle" fill={f.isTarget && step < 3 ? "#0d9488" : "#0f172a"} fontSize="20" fontWeight="900">{f.mid}</text>
+                                    <text x="55" y="96" textAnchor="middle" fill="#0f172a" fontSize="17" fontWeight="bold">{f.bot}</text>
+                                </svg>
+                                <span className={`mt-1 text-xs font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-700'}`}>{f.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            );
+        };
+
+
+        // DATABASE DE LOS 12 EJERCICIOS (39 A 50)
+        const EXERCISES = [
+            {
+                id: 39, title: "Ejercicio 39", subtitle: "Sucesión Cuadrática + 1",
+                cardGradient: "from-blue-600/40 to-cyan-700/40 border-blue-400", badgeColor: "bg-blue-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en: <MathDisplay inline latex="1;\ 2;\ 5;\ 26;\ x" /></span>,
+                steps: [
+                    {
+                        latex: String.raw`1;\ 2;\ 5;\ 26;\ x`,
+                        propertyText: "Analizando el Patrón",
+                        robotSpeech: "¡Hola! Observemos cómo crece la sucesión. Los números aumentan muy rápido, lo que sugiere una potencia o multiplicación cuadrática."
+                    },
+                    {
+                        latex: String.raw`1^2 + 1 = 1 + 1 = 2`,
+                        propertyText: "Primer Término al Segundo",
+                        robotSpeech: "Para pasar de 1 a 2: elevamos 1 al cuadrado y le sumamos 1. ¡Funciona perfecto!"
+                    },
+                    {
+                        latex: String.raw`2^2 + 1 = 4 + 1 = 5 \quad \land \quad 5^2 + 1 = 25 + 1 = 26`,
+                        propertyText: "Comprobando la Regla",
+                        robotSpeech: "¡Genial! 2 al cuadrado más 1 da 5; y 5 al cuadrado más 1 nos da 26. La regla universal es: (Término anterior)² + 1."
+                    },
+                    {
+                        latex: String.raw`x = 26^2 + 1 = 676 + 1 = \mathbf{677}`,
+                        propertyText: "Cálculo de x",
+                        robotSpeech: "Aplicamos el patrón para hallar x: 26² es 676, sumamos 1 y obtenemos 677. ¡La respuesta correcta es la E!"
+                    }
+                ]
+            },
+            {
+                id: 40, title: "Ejercicio 40", subtitle: "Sucesión Intercalada (+4)",
+                cardGradient: "from-purple-600/40 to-fuchsia-700/40 border-purple-400", badgeColor: "bg-purple-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en: <MathDisplay inline latex="4;\ 7;\ 16;\ 11;\ 64;\ 15;\ 256;\ x" /></span>,
+                steps: [
+                    {
+                        latex: String.raw`4;\ 7;\ 16;\ 11;\ 64;\ 15;\ 256;\ x`,
+                        propertyText: "Sucesiones Intercaladas",
+                        robotSpeech: "Fíjate que los números suben y bajan de forma alternada. Esto indica que hay DOS sucesiones entrelazadas."
+                    },
+                    {
+                        latex: String.raw`\text{Posiciones Impares: } 4 \xrightarrow{\times 4} 16 \xrightarrow{\times 4} 64 \xrightarrow{\times 4} 256`,
+                        propertyText: "Analizando Términos Impares",
+                        robotSpeech: "Los términos en lugares impares (1.º, 3.º, 5.º, 7.º) se multiplican consecutivamente por 4."
+                    },
+                    {
+                        latex: String.raw`\text{Posiciones Pares: } 7 \xrightarrow{+4} 11 \xrightarrow{+4} 15 \xrightarrow{+4} x`,
+                        propertyText: "Analizando Términos Pares",
+                        robotSpeech: "Los términos en lugares pares (2.º, 4.º, 6.º, 8.º) van aumentando de 4 en 4 sumando en cada paso."
+                    },
+                    {
+                        latex: String.raw`x = 15 + 4 = \mathbf{19}`,
+                        propertyText: "Resultado Final",
+                        robotSpeech: "Como 'x' ocupa la posición 8 (par), simplemente sumamos: 15 + 4 = 19. ¡Respuesta B!"
+                    }
+                ]
+            },
+            {
+                id: 41, title: "Ejercicio 41", subtitle: "Analogía Círculos Cuadrantes",
+                cardGradient: "from-sky-600/40 to-blue-700/40 border-sky-400", badgeColor: "bg-sky-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en los círculos divididos en 4 sectores:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Diag}_1 = \text{Diag}_2 \implies \text{TL} \times \text{BR} = \text{TR} \times \text{BL}`,
+                        propertyText: "Patrón de Diagonales",
+                        robotSpeech: "Examinemos cada rueda. El producto de los números en la diagonal principal es igual al producto de la otra diagonal.",
+                        graphic: (step) => <CirclesQuadrantsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } 6 \times 4 = 3 \times 8 = 24 \quad \checkmark`,
+                        propertyText: "Verificación Figura 1",
+                        robotSpeech: "En el primer gráfico: 6 × 4 = 24 y 3 × 8 = 24. ¡La igualdad se cumple perfectamente!",
+                        graphic: (step) => <CirclesQuadrantsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } 9 \times 8 = 6 \times 12 = 72 \quad \checkmark`,
+                        propertyText: "Verificación Figura 2",
+                        robotSpeech: "En el segundo gráfico: 9 × 8 = 72 y 6 × 12 = 72. ¡Confirmado!",
+                        graphic: (step) => <CirclesQuadrantsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } 12 \times 8 = x \times 6 \implies 96 = 6x \implies x = \mathbf{16}`,
+                        propertyText: "Despejando x",
+                        robotSpeech: "Aplicamos la regla a la tercera rueda: 12 × 8 = 96. Dividimos entre 6 y obtenemos x = 16. ¡Respuesta B!",
+                        graphic: (step) => <CirclesQuadrantsSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 42, title: "Ejercicio 42", subtitle: "Sucesión Intercalada × (-3)",
+                cardGradient: "from-rose-600/40 to-pink-700/40 border-rose-400", badgeColor: "bg-rose-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en: <MathDisplay inline latex="1;\ -2;\ 3;\ 6;\ 9;\ -18;\ 27;\ x" /></span>,
+                steps: [
+                    {
+                        latex: String.raw`1;\ -2;\ 3;\ 6;\ 9;\ -18;\ 27;\ x`,
+                        propertyText: "Alternancia de Signos",
+                        robotSpeech: "Atención al cambio de signos positivos y negativos. Separemos la sucesión en dos secuencias intercaladas."
+                    },
+                    {
+                        latex: String.raw`\text{Posiciones Impares: } 1 \xrightarrow{\times 3} 3 \xrightarrow{\times 3} 9 \xrightarrow{\times 3} 27`,
+                        propertyText: "Secuencia Impares",
+                        robotSpeech: "Los números en las posiciones impares avanzan multiplicándose por 3 consecutivamente."
+                    },
+                    {
+                        latex: String.raw`\text{Posiciones Pares: } -2 \xrightarrow{\times (-3)} 6 \xrightarrow{\times (-3)} -18 \xrightarrow{\times (-3)} x`,
+                        propertyText: "Secuencia Pares",
+                        robotSpeech: "Los números en las posiciones pares se multiplican en cada paso por (-3)."
+                    },
+                    {
+                        latex: String.raw`x = -18 \times (-3) = \mathbf{54}`,
+                        propertyText: "Cálculo de x",
+                        robotSpeech: "Multiplicamos -18 por -3. Recuerda que menos por menos es más. ¡Resultado 54, Opción C!"
+                    }
+                ]
+            },
+            {
+                id: 43, title: "Ejercicio 43", subtitle: "Analogía Rectángulos",
+                cardGradient: "from-violet-600/40 to-purple-700/40 border-violet-400", badgeColor: "bg-violet-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en las distribuciones rectangulares:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Superior} = \frac{\text{Izq} \times \text{Der}}{6}`,
+                        propertyText: "Fórmula de Distribución",
+                        robotSpeech: "Observa las tres cajas. El número superior se obtiene multiplicando los dos números inferiores y dividiendo entre 6.",
+                        graphic: (step) => <RectanglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } \frac{1 \times 18}{6} = \frac{18}{6} = 3 \quad \checkmark`,
+                        propertyText: "Comprobando Figura 1",
+                        robotSpeech: "Primera figura: 1 × 18 = 18; 18 ÷ 6 = 3. ¡Coincide con el cabezal!",
+                        graphic: (step) => <RectanglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } \frac{3 \times 12}{6} = \frac{36}{6} = 6 \quad \checkmark`,
+                        propertyText: "Comprobando Figura 2",
+                        robotSpeech: "Segunda figura: 3 × 12 = 36; 36 ÷ 6 = 6. ¡Patrón confirmado!",
+                        graphic: (step) => <RectanglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } x = \frac{5 \times 6}{6} = \frac{30}{6} = \mathbf{5}`,
+                        propertyText: "Calculando x",
+                        robotSpeech: "Tercera figura: 5 × 6 = 30; 30 ÷ 6 = 5. ¡El valor de x es 5, Respuesta C!",
+                        graphic: (step) => <RectanglesSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 44, title: "Ejercicio 44", subtitle: "Sucesión Intercalada (+8)",
+                cardGradient: "from-teal-600/40 to-emerald-700/40 border-teal-400", badgeColor: "bg-teal-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en: <MathDisplay inline latex="64;\ -24;\ 32;\ -16;\ 16;\ -8;\ 8;\ x;\ 4" /></span>,
+                steps: [
+                    {
+                        latex: String.raw`64;\ -24;\ 32;\ -16;\ 16;\ -8;\ 8;\ x;\ 4`,
+                        propertyText: "Separación de Términos",
+                        robotSpeech: "Nuevamente tenemos una sucesión mixta. Vamos a separar posiciones impares y pares."
+                    },
+                    {
+                        latex: String.raw`\text{Impares: } 64 \xrightarrow{\div 2} 32 \xrightarrow{\div 2} 16 \xrightarrow{\div 2} 8 \xrightarrow{\div 2} 4`,
+                        propertyText: "Términos Impares",
+                        robotSpeech: "Los números de posiciones impares van reduciéndose a la mitad en cada paso (÷2)."
+                    },
+                    {
+                        latex: String.raw`\text{Pares: } -24 \xrightarrow{+8} -16 \xrightarrow{+8} -8 \xrightarrow{+8} x`,
+                        propertyText: "Términos Pares",
+                        robotSpeech: "Los números de posiciones pares aumentan sumando +8 en cada salto."
+                    },
+                    {
+                        latex: String.raw`x = -8 + 8 = \mathbf{0}`,
+                        propertyText: "Resultado Final",
+                        robotSpeech: "Sumamos -8 + 8 = 0. ¡Así obtenemos x = 0! La alternativa correcta es la C."
+                    }
+                ]
+            },
+            {
+                id: 45, title: "Ejercicio 45", subtitle: "Analogía Triángulos Divididos",
+                cardGradient: "from-pink-600/40 to-rose-700/40 border-pink-400", badgeColor: "bg-pink-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en los triángulos divididos:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Centro} = \frac{\text{Izq} + \text{Der}}{2}`,
+                        propertyText: "Relación de Vértices",
+                        robotSpeech: "Analicemos la estructura. El número central equivale a la media aritmética de los dos vértices inferiores.",
+                        graphic: (step) => <TrianglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } \frac{1 + 11}{2} = \frac{12}{2} = 6 \quad \checkmark`,
+                        propertyText: "Figura 1",
+                        robotSpeech: "Primer triángulo: 1 + 11 = 12; dividido entre 2 da 6. ¡Coincide!",
+                        graphic: (step) => <TrianglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } \frac{3 + 13}{2} = \frac{16}{2} = 8 \quad \checkmark`,
+                        propertyText: "Figura 2",
+                        robotSpeech: "Segundo triángulo: 3 + 13 = 16; dividido entre 2 da 8. ¡Verificado!",
+                        graphic: (step) => <TrianglesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } x = \frac{7 + 17}{2} = \frac{24}{2} = \mathbf{12}`,
+                        propertyText: "Calculando x",
+                        robotSpeech: "Tercer triángulo: 7 + 17 = 24; dividido entre 2 nos da 12. ¡Opción B!",
+                        graphic: (step) => <TrianglesSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 46, title: "Ejercicio 46", subtitle: "Analogía Dianas con Orejas",
+                cardGradient: "from-emerald-600/40 to-green-700/40 border-emerald-400", badgeColor: "bg-emerald-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en las dianas circulares:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Centro} = \frac{\text{Oreja Izq} + \text{Oreja Der}}{2}`,
+                        propertyText: "Relación Orejas-Centro",
+                        robotSpeech: "En estas dianas, el número del centro blanco se obtiene sumando las dos orejitas y dividiendo entre 2.",
+                        graphic: (step) => <TargetEarsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } \frac{6 + 12}{2} = \frac{18}{2} = 9 \quad \checkmark`,
+                        propertyText: "Comprobando Figura 1",
+                        robotSpeech: "Primera diana: 6 + 12 = 18; 18 ÷ 2 = 9.",
+                        graphic: (step) => <TargetEarsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } \frac{4 + 18}{2} = \frac{22}{2} = 11 \quad \checkmark`,
+                        propertyText: "Comprobando Figura 2",
+                        robotSpeech: "Segunda diana: 4 + 18 = 22; 22 ÷ 2 = 11.",
+                        graphic: (step) => <TargetEarsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } x = \frac{5 + 15}{2} = \frac{20}{2} = \mathbf{10}`,
+                        propertyText: "Calculando x",
+                        robotSpeech: "Tercera diana: 5 + 15 = 20; 20 ÷ 2 = 10. ¡Respuesta C!",
+                        graphic: (step) => <TargetEarsSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 47, title: "Ejercicio 47", subtitle: "Sucesión Fraccionaria (÷2)",
+                cardGradient: "from-amber-600/40 to-orange-700/40 border-amber-400", badgeColor: "bg-amber-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en la tira numérica: <MathDisplay inline latex="736;\ 368;\ 184;\ 92;\ 46;\ x" /></span>,
+                steps: [
+                    {
+                        latex: String.raw`736;\ 368;\ 184;\ 92;\ 46;\ x`,
+                        propertyText: "Patrón Decreciente",
+                        robotSpeech: "Observa cómo disminuyen los números en las celdas consecutivas.",
+                        graphic: (step) => <SequenceBoxesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`736 \div 2 = 368 \quad \land \quad 368 \div 2 = 184`,
+                        propertyText: "División entre 2",
+                        robotSpeech: "Cada término es la mitad exacta del término anterior.",
+                        graphic: (step) => <SequenceBoxesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`184 \div 2 = 92 \quad \land \quad 92 \div 2 = 46`,
+                        propertyText: "Confirmación",
+                        robotSpeech: "92 ÷ 2 nos da 46. ¡La regla de dividir entre 2 se mantiene inalterada!",
+                        graphic: (step) => <SequenceBoxesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`x = 46 \div 2 = \mathbf{23}`,
+                        propertyText: "Resultado Final",
+                        robotSpeech: "Dividimos 46 entre 2 obteniendo 23. ¡La respuesta correcta es la C!",
+                        graphic: (step) => <SequenceBoxesSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 48, title: "Ejercicio 48", subtitle: "Analogía Pirámides de 3 Pisos",
+                cardGradient: "from-indigo-600/40 to-blue-700/40 border-indigo-400", badgeColor: "bg-indigo-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en las pirámides de 3 niveles:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Medio} = (\text{Superior})^2 + \text{Inferior}`,
+                        propertyText: "Fórmula Piramidal",
+                        robotSpeech: "El número del piso del medio se obtiene elevando al cuadrado el número superior y sumando el inferior.",
+                        graphic: (step) => <PyramidsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } 1^2 + 3 = 1 + 3 = 4 \quad \checkmark`,
+                        propertyText: "Figura 1",
+                        robotSpeech: "Pirámide 1: 1² + 3 = 4. ¡Correcto!",
+                        graphic: (step) => <PyramidsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } 2^2 + 5 = 4 + 5 = 9 \quad \checkmark`,
+                        propertyText: "Figura 2",
+                        robotSpeech: "Pirámide 2: 2² + 5 = 9. ¡Perfecto!",
+                        graphic: (step) => <PyramidsSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } x = 3^2 + 7 = 9 + 7 = \mathbf{16}`,
+                        propertyText: "Calculando x",
+                        robotSpeech: "Pirámide 3: 3² + 7 = 9 + 7 = 16. ¡La alternativa es la D!",
+                        graphic: (step) => <PyramidsSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 49, title: "Ejercicio 49", subtitle: "Analogía Marcos Trapezoidales",
+                cardGradient: "from-fuchsia-600/40 to-pink-700/40 border-fuchsia-400", badgeColor: "bg-fuchsia-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en los marcos trapezoidales:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Centro} = \frac{\text{Superior} + \text{Izquierda} + \text{Derecha}}{2}`,
+                        propertyText: "Suma de Bordes",
+                        robotSpeech: "El triángulo central se calcula sumando los tres valores de los bordes y dividiendo entre 2.",
+                        graphic: (step) => <TrapezoidFramesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } \frac{11 + 6 + 15}{2} = \frac{32}{2} = 16 \quad \checkmark`,
+                        propertyText: "Figura 1",
+                        robotSpeech: "Primer marco: (11 + 6 + 15) ÷ 2 = 32 ÷ 2 = 16.",
+                        graphic: (step) => <TrapezoidFramesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } \frac{13 + 7 + 18}{2} = \frac{38}{2} = 19 \quad \checkmark`,
+                        propertyText: "Figura 2",
+                        robotSpeech: "Segundo marco: (13 + 7 + 18) ÷ 2 = 38 ÷ 2 = 19.",
+                        graphic: (step) => <TrapezoidFramesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } X = \frac{15 + 8 + 21}{2} = \frac{44}{2} = \mathbf{22}`,
+                        propertyText: "Calculando X",
+                        robotSpeech: "Tercer marco: (15 + 8 + 21) ÷ 2 = 44 ÷ 2 = 22. ¡Respuesta C!",
+                        graphic: (step) => <TrapezoidFramesSVG step={step} />
+                    }
+                ]
+            },
+            {
+                id: 50, title: "Ejercicio 50", subtitle: "Analogía Círculos de 3 Franjas",
+                cardGradient: "from-cyan-600/40 to-teal-700/40 border-cyan-400", badgeColor: "bg-cyan-600",
+                enunciado: () => <span>Halla "<MathDisplay inline latex="x" />" en los círculos de 3 franjas horizontales:</span>,
+                steps: [
+                    {
+                        latex: String.raw`\text{Franja Media} = \text{Franja Superior} + \text{Franja Inferior}`,
+                        propertyText: "Suma Directa",
+                        robotSpeech: "Para hallar la franja del centro, simplemente sumamos la franja superior y la inferior.",
+                        graphic: (step) => <StripedCirclesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 1: } 4 + 3 = 7 \quad \checkmark`,
+                        propertyText: "Figura 1",
+                        robotSpeech: "Primer círculo: 4 + 3 = 7.",
+                        graphic: (step) => <StripedCirclesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 2: } 5 + 4 = 9 \quad \checkmark`,
+                        propertyText: "Figura 2",
+                        robotSpeech: "Segundo círculo: 5 + 4 = 9.",
+                        graphic: (step) => <StripedCirclesSVG step={step} />
+                    },
+                    {
+                        latex: String.raw`\text{Figura 3: } x = 6 + 5 = \mathbf{11}`,
+                        propertyText: "Calculando x",
+                        robotSpeech: "Tercer círculo: 6 + 5 = 11. ¡La respuesta correcta es la B!",
+                        graphic: (step) => <StripedCirclesSVG step={step} />
+                    }
+                ]
+            }
+        ];
+
+        // Background Floating Math Symbols Component
+        const FloatingBackground = memo(() => {
+            const symbols = ['+', '-', '×', '÷', 'x', 'y', '∞', '²', '√', '=', '≠'];
+            const elements = Array.from({ length: 45 }).map((_, i) => ({
+                id: i, symbol: symbols[Math.floor(Math.random() * symbols.length)], left: `${Math.random() * 100}%`,
+                animationDuration: `${10 + Math.random() * 15}s`, animationDelay: `-${Math.random() * 20}s`,
+                fontSize: `${1.1 + Math.random() * 2.5}rem`, opacity: 0.08 + Math.random() * 0.14
+            }));
+            return (
+                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                    {elements.map((el) => (
+                        <div key={el.id} className="absolute text-white font-black animate-floatUp select-none drop-shadow-md" style={{ left: el.left, bottom: '-15%', fontSize: el.fontSize, opacity: el.opacity, animationDuration: el.animationDuration, animationDelay: el.animationDelay }}>
+                            {el.symbol}
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        // Confetti Explosion Component
+        const Confetti = memo(() => {
+            const colors = ['#fde047', '#60a5fa', '#f472b6', '#34d399', '#a78bfa', '#ff5722', '#38bdf8'];
+            const pieces = Array.from({ length: 130 }).map((_, i) => ({
+                id: i, left: `${50 + (Math.random() * 24 - 12)}%`, color: colors[Math.floor(Math.random() * colors.length)],
+                tx: `${(Math.random() - 0.5) * 900}px`, ty: `${(Math.random() - 1) * 900}px`, rot: `${Math.random() * 720}deg`, delay: `${Math.random() * 0.25}s`
+            }));
+            return (
+                <div className="absolute inset-0 pointer-events-none z-50 flex items-center justify-center overflow-hidden">
+                    {pieces.map((p) => (
+                        <div key={p.id} className="absolute w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full animate-confettiExplosion shadow-md" style={{ backgroundColor: p.color, '--tx': p.tx, '--ty': p.ty, '--rot': p.rot, animationDelay: p.delay, left: p.left, top: '50%' }} />
+                    ))}
+                </div>
+            );
+        });
+
+        // Animated Interactive Robot Assistant Component
+        const RobotAssistant = ({ step, maxSteps }) => {
+            const isFinalStep = step >= maxSteps;
+            const isThinking = step === maxSteps - 1;
+
+            const getContainerAnim = () => { if (isFinalStep) return 'animate-robotJump'; if (isThinking) return 'animate-robotThinkTilt'; return 'animate-robotFloat'; };
+            const getArmLAnim = () => { if (isFinalStep) return 'rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmL'; return 'rotate-45'; };
+            const getArmRAnim = () => { if (isFinalStep) return '-rotate-[150deg] animate-pulse'; if (step > 0) return 'animate-robotTalkArmR'; return '-rotate-45'; };
+            
+            const getEyes = () => {
+                if (isFinalStep) return <div className="w-full flex justify-between px-1.5"><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div><div className="w-3.5 h-2 bg-emerald-400 rounded-t-full mt-1"></div></div>;
+                if (step === 0) return <div className="w-full flex justify-between px-2"><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div><div className="w-2.5 h-2.5 bg-cyan-400 rounded-full animate-pulse"></div></div>;
+                return <div className="w-full flex justify-between px-1.5"><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div><div className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div></div>;
+            };
+            const getMouth = () => {
+                if (isFinalStep) return <div className="w-6 h-3 bg-rose-400 rounded-b-full mt-1"></div>;
+                if (step === 0) return <div className="w-4 h-1.5 bg-cyan-300 rounded-full mt-1.5"></div>;
+                return <div className="w-3.5 h-3.5 bg-rose-400 rounded-full mt-1 animate-ping"></div>;
+            };
+
+            return (
+                <div className={`relative flex flex-col items-center drop-shadow-xl select-none ${getContainerAnim()}`}>
+                    <div className="relative z-0 flex flex-col items-center translate-y-1">
+                        <div className={`w-3.5 h-3.5 rounded-full shadow-[0_0_12px_currentColor] z-10 transition-colors duration-300 ${isFinalStep ? 'text-emerald-400 bg-emerald-400' : 'text-yellow-400 bg-yellow-400 animate-pulse'}`}></div>
+                        <div className="w-1.5 h-4 bg-slate-300"></div>
+                    </div>
+                    <div className="relative z-10 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-white to-slate-200 rounded-[1.2rem] border-[3px] border-indigo-500 shadow-2xl flex flex-col items-center justify-center p-1.5">
+                        <div className="w-full h-full bg-slate-900 rounded-lg flex flex-col items-center justify-center p-1 shadow-inner border-2 border-indigo-400">
+                            {getEyes()} {getMouth()}
+                        </div>
+                    </div>
+                    <div className={`absolute top-1/2 -left-2 w-3 h-5 bg-slate-200 border-[2.5px] border-indigo-500 rounded-full z-0 origin-top ${getArmLAnim()}`}></div>
+                    <div className={`absolute top-1/2 -right-2 w-3 h-5 bg-slate-200 border-[2.5px] border-indigo-500 rounded-full z-0 origin-top ${getArmRAnim()}`}></div>
+                </div>
+            );
+        };
+
+        // Main App Component
+        function App() {
+            const [view, setView] = useState('home');
+            const [exIdx, setExIdx] = useState(0);
+            const [step, setStep] = useState(0);
+            const [isMuted, setIsMuted] = useState(false);
+            const scrollContainerRef = useRef(null);
+
+            const currentExercise = EXERCISES[exIdx];
+            const maxSteps = currentExercise.steps.length - 1;
+            const currentStepData = currentExercise.steps[step];
+            const EnunciadoText = currentExercise.enunciado;
+
+            const handleInteraction = () => AudioController.init();
+
+            useEffect(() => {
+                if(scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                }
+            }, [step, exIdx, view]);
+
+            const startExercise = (index) => {
+                handleInteraction();
+                AudioController.play('swoosh');
+                setExIdx(index);
+                setStep(0);
+                setView('lab');
+            };
+
+            const nextStep = () => {
+                handleInteraction();
+                if (step < maxSteps) {
+                    const next = step + 1;
+                    setStep(next);
+                    if (next === maxSteps) AudioController.play('success');
+                    else AudioController.play('pop');
+                } else {
+                    if (exIdx < EXERCISES.length - 1) {
+                        AudioController.play('swoosh');
+                        setExIdx(exIdx + 1);
+                        setStep(0);
+                    } else {
+                        AudioController.play('swoosh');
+                        setView('home');
+                    }
+                }
+            };
+
+            const prevStep = () => {
+                handleInteraction();
+                if (step > 0) {
+                    setStep(step - 1);
+                    AudioController.play('pop-reverse');
+                }
+            };
+
+            const toggleMute = () => { handleInteraction(); setIsMuted(AudioController.toggleMute()); };
+
+            if (view === 'home') {
+                return (
+                    <div className="w-screen min-h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#4c0519] flex flex-col items-center justify-start p-4 sm:p-6 relative font-fun overflow-y-auto overflow-x-hidden scrollbar-hide">
+                        <FloatingBackground />
+                        
+                        {/* Header Home */}
+                        <div className="w-[96%] max-w-[1400px] z-20 flex items-center justify-between mb-6 sm:mb-8 mt-2">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl border-2 border-yellow-300 bg-white/15 backdrop-blur-md text-yellow-300 font-black tracking-wider uppercase shadow-md text-xs sm:text-sm">
+                                <Rocket className="w-5 h-5 text-yellow-300" /> TuProfe20 Lab
+                            </div>
+                            <button onClick={toggleMute} className="p-2.5 sm:p-3 rounded-2xl bg-white/15 border-2 border-white/30 backdrop-blur-md text-white hover:bg-white/30 transition-all active:scale-95 shadow-md">
+                                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                            </button>
+                        </div>
+
+                        {/* Title Home */}
+                        <div className="relative z-10 text-center w-[96%] max-w-[1400px] flex flex-col items-center">
+                            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white mb-3 sm:mb-4 drop-shadow-[0_6px_0_rgba(0,0,0,0.4)] tracking-tight leading-none uppercase">
+                                Sucesiones y Analogías <span className="text-yellow-300 underline decoration-wavy decoration-cyan-400">Numéricas y Gráficas</span>
+                            </h1>
+                            <p className="text-sm sm:text-lg lg:text-xl text-purple-200 mb-8 sm:mb-10 font-bold max-w-3xl leading-relaxed">
+                                ¡Resuelve interactivamente los Ejercicios 39 al 50 paso a paso con gráficos y explicaciones claras! 🚀🧩
+                            </p>
+
+                            {/* Exercises Grid */}
+                            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-12">
+                                {EXERCISES.map((ex, idx) => (
+                                    <button
+                                        key={ex.id}
+                                        onClick={() => startExercise(idx)}
+                                        className="group text-left p-4 rounded-[1.5rem] bg-gradient-to-br backdrop-blur-xl border-[3px] border-white/30 hover:-translate-y-2 hover:shadow-[0_15px_30px_rgba(0,0,0,0.4)] transition-all flex flex-col relative overflow-hidden shadow-lg min-h-[11rem]"
+                                        style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
+                                    >
+                                        <div className={`absolute inset-0 opacity-80 ${ex.cardGradient}`}></div>
+                                        <div className="relative z-10 flex-1 flex flex-col justify-between">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className={`${ex.badgeColor} text-white text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm`}>
+                                                    Reto {ex.id}
+                                                </span>
+                                                <span className="bg-black/30 text-white text-[11px] font-bold px-2 py-0.5 rounded-md">
+                                                    {ex.steps.length} pasos
+                                                </span>
+                                            </div>
+                                            <div className="my-2 bg-white/95 rounded-xl p-2 text-slate-900 shadow-inner flex items-center justify-center border border-white/60 w-full pointer-events-none math-card min-h-[3.5rem]">
+                                                <MathDisplay latex={ex.steps[ex.steps.length - 1].latex} />
+                                            </div>
+                                            <div className="text-white text-xs sm:text-sm font-black text-center drop-shadow-md">
+                                                {ex.subtitle}
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-screen h-[100dvh] bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#831843] text-slate-800 flex flex-col p-2 sm:p-4 relative font-fun overflow-hidden">
+                    <FloatingBackground />
+                    {step === maxSteps && <Confetti />}
+
+                    {/* Navbar InLab View */}
+                    <div className="shrink-0 relative z-10 w-[96%] max-w-[1400px] mx-auto flex justify-between items-center mb-2 sm:mb-3 px-1">
+                        <button onClick={() => { AudioController.play('swoosh'); setView('home'); }} className="flex items-center justify-center px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 backdrop-blur-md text-white font-black hover:bg-white/20 transition-all shadow-lg active:scale-95 text-xs sm:text-base hover:scale-105">
+                            <Home className="w-4 h-4 sm:w-5 sm:h-5 sm:mr-2" />
+                            <span className="hidden sm:inline">Portada</span>
+                        </button>
+
+                        {/* Exercise Selector Chips */}
+                        <div className="flex items-center gap-1 sm:gap-1.5 bg-black/40 p-1.5 sm:p-2 rounded-[1rem] sm:rounded-[1.2rem] border-2 border-white/20 backdrop-blur-md shadow-lg overflow-x-auto scrollbar-hide max-w-[60vw]">
+                            {EXERCISES.map((ex, i) => (
+                                <button
+                                    key={ex.id}
+                                    onClick={() => startExercise(i)}
+                                    className={`shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-[0.7rem] sm:rounded-[0.9rem] font-black text-xs sm:text-sm transition-all ${exIdx === i ? 'bg-yellow-400 text-slate-900 scale-110 shadow-[0_0_15px_rgba(250,204,21,0.7)]' : 'text-white hover:bg-white/20'}`}
+                                >
+                                    {ex.id}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button onClick={toggleMute} className="p-2 sm:p-3 rounded-[1rem] sm:rounded-[1.2rem] bg-white/10 border-[3px] border-white/30 text-white hover:bg-white/20 transition-all shadow-lg active:scale-95 hover:scale-105">
+                            {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
+                        </button>
+                    </div>
+
+                    {/* Main Interactive Card */}
+                    <div className="flex-1 min-h-0 relative z-10 w-[96%] max-w-[1400px] mx-auto bg-white rounded-[2rem] sm:rounded-[2.5rem] border-[6px] sm:border-[8px] border-slate-100 shadow-[0_30px_60px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden">
+                        
+                        {/* Header Enunciado */}
+                        <div className="shrink-0 bg-slate-900 border-b-[4px] border-indigo-500 px-4 py-2.5 sm:px-6 flex flex-col justify-center relative shadow-md z-20">
+                            <div className="flex justify-between items-center w-full max-w-5xl mx-auto mb-1">
+                                <span className="bg-yellow-400 text-slate-900 font-black text-xs sm:text-sm px-3 py-0.5 sm:py-1 rounded-md uppercase tracking-wider shadow-sm">
+                                    {currentExercise.title}
+                                </span>
+                                <span className="text-cyan-200 font-bold text-xs sm:text-sm bg-white/10 px-3 py-0.5 sm:py-1 rounded-md">
+                                    {currentExercise.subtitle}
+                                </span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center text-white font-bold text-base sm:text-xl text-center w-full max-w-5xl mx-auto leading-relaxed math-enunciado">
+                                <EnunciadoText />
+                            </div>
+                        </div>
+
+                        {/* Interactive Step-by-Step Canvas */}
+                        <div className="flex-1 flex flex-col items-center p-3 sm:p-5 relative bg-slate-50 overflow-hidden w-full">
+                            <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#000_2px,transparent_2px)] [background-size:20px_20px] pointer-events-none"></div>
+
+                            {/* Active Step Badge */}
+                            <div key={`badge-${exIdx}-${step}`} className="z-20 mb-3 animate-jellyPop text-center shrink-0">
+                                <span className={`inline-flex items-center gap-2 px-4 py-1.5 sm:px-6 sm:py-2 rounded-[1rem] font-black text-xs sm:text-base shadow-lg border-2 ${step === maxSteps ? 'bg-amber-400 text-slate-900 border-yellow-200' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-indigo-400'}`}>
+                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" /> 
+                                    <span>{currentStepData.propertyText}</span>
+                                </span>
+                            </div>
+
+                            {/* Step History Scroll Box */}
+                            <div ref={scrollContainerRef} className="w-full flex-1 flex flex-col items-center justify-start z-10 px-2 space-y-4 overflow-y-auto scrollbar-hide pb-4">
+                                {currentExercise.steps.slice(0, step + 1).map((s, idx) => (
+                                    <div key={`${exIdx}-${idx}`} className={`transition-all duration-300 w-full max-w-3xl flex flex-col items-center ${idx === step ? 'opacity-100 scale-100 animate-slideInRight' : 'opacity-65 scale-95'}`}>
+                                        
+                                        <div className={`px-4 py-2.5 sm:px-8 sm:py-3.5 w-fit max-w-full text-center rounded-[1.5rem] flex items-center justify-center min-h-[3.5rem] sm:min-h-[4.5rem] overflow-x-auto scrollbar-hide ${
+                                            idx === step 
+                                            ? (step === maxSteps ? 'bg-[#fde047] border-[4px] sm:border-[5px] border-[#eab308] shadow-[0_12px_24px_rgba(234,179,8,0.45)] math-current' : 'bg-white border-[4px] sm:border-[5px] border-indigo-400 shadow-[0_10px_22px_rgba(99,102,241,0.25)] math-current') 
+                                            : 'bg-white/80 border-[2px] sm:border-[3px] border-slate-200 math-history'
+                                        }`}>
+                                            <MathDisplay latex={s.latex} />
+                                        </div>
+
+                                        {/* Dynamic SVG graphic render if present in the step */}
+                                        {s.graphic && (
+                                            <div className={`mt-3 w-full bg-white rounded-2xl border-2 p-3 shadow-sm transition-all ${idx === step ? 'border-indigo-300 ring-4 ring-indigo-100' : 'border-slate-200 opacity-80'}`}>
+                                                {typeof s.graphic === 'function' ? s.graphic(idx) : s.graphic}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Robot Assistant Feedback Footer */}
+                        <div className="shrink-0 bg-white w-full px-4 py-2 sm:px-8 sm:py-3 flex items-center gap-4 sm:gap-6 border-t-[4px] border-slate-100 z-20 relative shadow-[0_-10px_20px_rgba(0,0,0,0.04)]">
+                            <div className="shrink-0 absolute -top-12 sm:relative sm:-top-0 left-3 sm:left-0 drop-shadow-xl">
+                                <RobotAssistant step={step} maxSteps={maxSteps} />
+                            </div>
+                            <div className="flex-1 text-xs sm:text-base md:text-lg font-bold text-slate-700 leading-snug sm:leading-relaxed bg-indigo-50/80 p-2.5 sm:p-3.5 rounded-[1rem] border-2 border-indigo-100 min-h-[3.8rem] flex items-center shadow-sm ml-[4.2rem] sm:ml-0">
+                                <div key={`speech-${exIdx}-${step}`} className="animate-slideInRight w-full">
+                                    {currentStepData.robotSpeech}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Navigation Bar */}
+                        <div className="shrink-0 bg-gradient-to-b from-[#e0e7ff] to-[#c7d2fe] p-2 sm:p-3 w-full flex flex-col items-center border-t-[4px] border-white z-20">
+                            <div className="flex justify-center items-stretch w-full max-w-4xl gap-2 sm:gap-4 h-10 sm:h-12">
+                                <button
+                                    onClick={prevStep}
+                                    disabled={step === 0}
+                                    className="flex-[0.8] bg-[#a5b4fc] border-b-[4px] border-[#6366f1] text-[#312e81] rounded-l-xl font-black text-xs sm:text-base flex items-center justify-center gap-1 active:border-b-0 active:translate-y-[4px] disabled:opacity-40 transition-all hover:bg-[#c7d2fe]"
+                                >
+                                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                    <span className="hidden sm:inline">Atrás</span>
+                                </button>
+
+                                <div className="bg-[#6366f1] text-white font-black px-3 sm:px-6 text-xs sm:text-lg flex items-center justify-center border-b-[4px] border-[#4338ca] shadow-inner whitespace-nowrap min-w-[3.5rem]">
+                                    Paso {step + 1}/{maxSteps + 1}
+                                </div>
+
+                                <button
+                                    onClick={nextStep}
+                                    className={`flex-[2] border-b-[4px] text-white rounded-r-xl font-black text-xs sm:text-lg flex items-center justify-center gap-2 active:border-b-0 active:translate-y-[4px] transition-all shadow-sm hover:brightness-110 ${
+                                        step === maxSteps
+                                            ? 'bg-gradient-to-r from-[#10b981] to-[#047857] border-[#065f46] animate-pulse'
+                                            : 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] border-[#1d4ed8]'
+                                    }`}
+                                >
+                                    <span>
+                                        {step < maxSteps
+                                            ? '¡Siguiente Paso!'
+                                            : exIdx < EXERCISES.length - 1
+                                            ? `Siguiente Reto`
+                                            : '¡Volver a Portada!'}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
